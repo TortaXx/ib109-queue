@@ -25,6 +25,8 @@ mutex_queue_t *mutex_create_queue();
 
 void mutex_destroy_queue(mutex_queue_t *queue);
 
+void mutex_print_queue(mutex_queue_t *queue);
+
 bool mutex_is_empty(mutex_queue_t *queue);
 
 int mutex_enqueue(mutex_queue_t *queue, int data);
