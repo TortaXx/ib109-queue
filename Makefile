@@ -1,6 +1,4 @@
 CC=gcc
-CFLAGS=-I.
-DEPS = hellomake.h
 
 
 run: build
