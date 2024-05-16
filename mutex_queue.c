@@ -41,7 +41,7 @@ void mutex_destroy_queue(mutex_queue_t *queue) {
 
 
 void mutex_print_queue(mutex_queue_t *queue) {
-    if (lf_is_empty(queue)) {
+    if (mutex_is_empty(queue)) {
         printf("Queue is empty\n");
     }
     mutex_node *current = queue->front;
