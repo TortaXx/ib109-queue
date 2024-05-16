@@ -7,7 +7,6 @@
 
 typedef struct mutex_node {
     int data;
-    mutex_node *next;
     mutex_node *prev;
 } mutex_node;
 
@@ -15,7 +14,7 @@ typedef struct mutex_node {
 mutex_queue_t *mutex_create_queue() {
     mutex_queue_t *queue = malloc(sizeof(mutex_queue_t));
     if (queue == NULL) {
-        fprintf(stderr, "Error allocating mutex_queue_t");
+        fprintf(stderr, "Error allocating mutex_queue_t\n");
         return NULL;
     }
 
@@ -27,17 +26,35 @@ mutex_queue_t *mutex_create_queue() {
 
 
 void mutex_destroy_queue(mutex_queue_t *queue) {
-    // Assumes the thread is not being used here
-    mutex_node *current = queue->back;
-    mutex_node *next = NULL;
+    mutex_node *current = queue->front;
+    mutex_node *prev = NULL;
 
     while (current != NULL) {
-        next = current->next;
+        prev = current->prev;
         free(current);
-        current = next;
+        current = prev;
     }
     pthread_mutex_destroy(&queue->lock);
     free(queue);
+}
+
+
+
+void mutex_print_queue(mutex_queue_t *queue) {
+    if (lf_is_empty(queue)) {
+        printf("Queue is empty\n");
+    }
+    mutex_node *current = queue->front;
+    while (current != NULL) {
+        printf("%d", current->data);
+
+        current = current->prev;
+
+        if (current != NULL) {
+            printf("<-");
+        }
+    }
+    putchar('\n');
 }
 
 
@@ -51,7 +68,7 @@ bool mutex_is_empty(mutex_queue_t *queue) {
 
 int mutex_enqueue(mutex_queue_t *queue, int data) {
     mutex_node *new_node = malloc(sizeof(mutex_node));
-    
+
     if (new_node == NULL) {
         fprintf(stderr, "Error allocating new queue node");
         return -1;
@@ -59,11 +76,10 @@ int mutex_enqueue(mutex_queue_t *queue, int data) {
 
     new_node->prev = NULL;
     new_node->data = data;
-    
+
     pthread_mutex_lock(&queue->lock);
-    new_node->next = queue->back;
-    
-    
+
+
     if (queue->front == NULL) {
         queue->back = new_node;
         queue->front = new_node;
@@ -71,16 +87,15 @@ int mutex_enqueue(mutex_queue_t *queue, int data) {
         queue->back->prev = new_node;
         queue->back = new_node;
     }
-    
+
     pthread_mutex_unlock(&queue->lock);
-    
+
     return 0;
 }
 
 int mutex_dequeue(mutex_queue_t *queue, int *data) {
-    
     pthread_mutex_lock(&queue->lock);
-    
+
     if (queue->front == NULL) {
         pthread_mutex_unlock(&queue->lock);
         return -1;
@@ -92,10 +107,10 @@ int mutex_dequeue(mutex_queue_t *queue, int *data) {
     }
 
     queue->front = temp_node->prev;
+    temp_node->prev = NULL;
+
     if (queue->front == NULL) {
         queue->back = NULL;
-    } else {
-        queue->front->next = NULL;
     }
     pthread_mutex_unlock(&queue->lock);
 
