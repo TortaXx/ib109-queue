@@ -5,7 +5,7 @@
 #include "lf_queue.h"
 
 #define THREADS_COUNT 6
-#define TASKS_PER_THREAD 10
+#define TASKS_PER_THREAD 50
 
 
 
@@ -51,9 +51,7 @@ void mutex_thread_fun(void *arg) {
     for (int i = 0; i < TASKS_PER_THREAD; i++) {
         int data = rand() % 100;
         mutex_enqueue(queue, data);
-        // printf("Enqueued %d\n", data);
         mutex_dequeue(queue, &data);
-        // printf("Dequeued %d\n", data);
     }
 }
 
@@ -68,7 +66,6 @@ void enqueue_lf_thread_fun(void *arg) {
     for (int i = 0; i < 10; i++) {
         int data = rand() % 100;
         lf_enqueue(queue, data);
-        // lf_dequeue(queue, &data);
         // printf("Enqueued %d\n", data);
     }
 }
@@ -96,17 +93,13 @@ void lf_thread_fun(void *arg) {
     for (int i = 0; i < 10; i++) {
         int data = rand() % 100;
         lf_enqueue(queue, data);
-        // printf("Enqueued %d\n", data);
         lf_dequeue(queue, &data);
-        // printf("Dequeued %d\n", data)
     }
 }
 
 
 
 int main(void) {
-    // pthread_t enqueue_threads[THREADS_COUNT];
-    // pthread_t dequeue_threads[THREADS_COUNT];
     pthread_t general_threads[THREADS_COUNT];
 
     
@@ -119,14 +112,10 @@ int main(void) {
     clock_t mutex_begin = clock();
 
     for (int i = 0; i < THREADS_COUNT; i++) {
-        // pthread_create(&enqueue_threads[i], NULL, &enqueue_mutex_thread_fun, mutex_queue);
-        // pthread_create(&dequeue_threads[i], NULL, &dequeue_mutex_thread_fun, mutex_queue);
-        pthread_create(&general_threads[i], NULL, &mutex_thread_fun, mutex_queue);
+        pthread_create(&general_threads[i], NULL, (void *(*)(void *)) &mutex_thread_fun, mutex_queue);
     }
     // not the best solution
     for (int i = 0; i < THREADS_COUNT; i++) {
-        // pthread_join(enqueue_threads[i], NULL);
-        // pthread_join(dequeue_threads[i], NULL);
         pthread_join(general_threads[i], NULL);
     }
     
@@ -142,14 +131,10 @@ int main(void) {
     clock_t lf_begin = clock();
 
     for (int i = 0; i < THREADS_COUNT; i++) {
-        // pthread_create(&enqueue_threads[i], NULL, &enqueue_lf_thread_fun, lf_queue);
-        // pthread_create(&dequeue_threads[i], NULL, &dequeue_lf_thread_fun, lf_queue);
-        pthread_create(&general_threads[i], NULL, &lf_thread_fun, lf_queue);
+        pthread_create(&general_threads[i], NULL, (void *(*)(void *)) &lf_thread_fun, lf_queue);
     }
     // not the best solution
     for (int i = 0; i < THREADS_COUNT; i++) {
-        // pthread_join(enqueue_threads[i], NULL);
-        // pthread_join(dequeue_threads[i], NULL);
         pthread_join(general_threads[i], NULL);
     }
 
@@ -158,6 +143,7 @@ int main(void) {
     double mutex_total_time = (double)(mutex_end - mutex_begin);
     double lf_total_time = (double)(lf_end - lf_begin);
 
+    printf("524969\n");
     printf("%d\n", (int) trunc(lf_total_time / mutex_total_time * 100));
     // printf("%f", lf_total_time / mutex_total_time);
 }
